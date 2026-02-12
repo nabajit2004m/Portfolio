@@ -5,8 +5,18 @@ const Cursor = () => {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
     const [isClicking, setIsClicking] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
+        // Check if device is mobile or has coarse pointer (touch)
+        const checkMobile = () => {
+            const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 768;
+            setIsVisible(!isMobile);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+
         const mouseMove = (e) => {
             setMousePosition({
                 x: e.clientX,
@@ -17,46 +27,41 @@ const Cursor = () => {
         const mouseDown = () => setIsClicking(true);
         const mouseUp = () => setIsClicking(false);
 
-        const touchMove = (e) => {
-            if (e.touches.length > 0) {
-                setMousePosition({
-                    x: e.touches[0].clientX,
-                    y: e.touches[0].clientY
-                });
-                setIsHovering(true); // Treat touch as hover to make it visible/active
-            }
-        };
+        // Only add listeners if visible
+        if (isVisible) {
+            window.addEventListener("mousemove", mouseMove);
+            window.addEventListener("mousedown", mouseDown);
+            window.addEventListener("mouseup", mouseUp);
 
-        window.addEventListener("mousemove", mouseMove);
-        window.addEventListener("mousedown", mouseDown);
-        window.addEventListener("mouseup", mouseUp);
-        window.addEventListener("touchmove", touchMove, { passive: true });
-        window.addEventListener("touchstart", touchMove, { passive: true }); // Update on start too
+            // Add event listeners for hover effects on links and buttons
+            const handleMouseOver = (e) => {
+                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
+                    setIsHovering(true);
+                }
+            };
 
-        // Add event listeners for hover effects on links and buttons
-        const handleMouseOver = (e) => {
-            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
-                setIsHovering(true);
-            }
-        };
+            const handleMouseOut = () => {
+                setIsHovering(false);
+            };
 
-        const handleMouseOut = () => {
-            setIsHovering(false);
-        };
+            window.addEventListener('mouseover', handleMouseOver);
+            window.addEventListener('mouseout', handleMouseOut);
 
-        window.addEventListener('mouseover', handleMouseOver);
-        window.addEventListener('mouseout', handleMouseOut);
+            return () => {
+                window.removeEventListener("mousemove", mouseMove);
+                window.removeEventListener("mousedown", mouseDown);
+                window.removeEventListener("mouseup", mouseUp);
+                window.removeEventListener('mouseover', handleMouseOver);
+                window.removeEventListener('mouseout', handleMouseOut);
+                window.removeEventListener('resize', checkMobile);
+            };
+        }
 
-        return () => {
-            window.removeEventListener("mousemove", mouseMove);
-            window.removeEventListener("mousedown", mouseDown);
-            window.removeEventListener("mouseup", mouseUp);
-            window.removeEventListener("touchmove", touchMove);
-            window.removeEventListener("touchstart", touchMove);
-            window.removeEventListener('mouseover', handleMouseOver);
-            window.removeEventListener('mouseout', handleMouseOut);
-        };
-    }, []);
+        return () => window.removeEventListener('resize', checkMobile);
+
+    }, [isVisible]);
+
+    if (!isVisible) return null;
 
     const variants = {
         default: {

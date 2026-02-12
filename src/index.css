@@ -192,8 +192,7 @@ ul {
   /* Hide default cursor on mobile/touch devices but keep custom cursor visible */
   .cursor-dot,
   .cursor-follower {
-    display: block !important;
-    /* Ensure it's visible if we want it to follow touch */
+    display: none !important;
   }
 
   body,
@@ -203,7 +202,6 @@ ul {
   textarea,
   select {
     cursor: auto !important;
-    /* Default system cursor for touch targets if needed, but we are overlaying custom cursor */
   }
 
   /* Optimize layout for mobile */
