@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 
 // Particle class definition outside component
 class Particle {
-    constructor(canvasWidth, canvasHeight) {
+    constructor(canvasWidth, canvasHeight, isMobile) {
         this.x = Math.random() * canvasWidth;
         this.y = Math.random() * canvasHeight;
         // Store original position for spring effect
@@ -11,6 +11,7 @@ class Particle {
         this.size = Math.random() * 3 + 1;
         this.speedX = Math.random() * 0.5 - 0.25;
         this.speedY = Math.random() * 0.5 - 0.25;
+        this.isMobile = isMobile;
         this.color = this.getColor();
     }
 
@@ -26,7 +27,15 @@ class Particle {
             'rgba(255, 255, 255, 0.4)', // White
             'rgba(200, 200, 255, 0.3)', // Light purple
         ];
-        return colors[Math.floor(Math.random() * colors.length)];
+
+        let color = colors[Math.floor(Math.random() * colors.length)];
+
+        if (this.isMobile) {
+            // Reduce opacity by 60% for mobile
+            return color.replace(/, ([0-9.]+)\)/, (match, p1) => `, ${parseFloat(p1) * 0.4})`);
+        }
+
+        return color;
     }
 
     update(mouse) {
@@ -146,7 +155,9 @@ const ParticleBackground = () => {
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
                     if (distance < 100) {
-                        ctx.strokeStyle = `rgba(255, 204, 0, ${0.1 * (1 - distance / 100)})`;
+                        const isMobile = window.innerWidth <= 768;
+                        const alpha = 0.1 * (1 - distance / 100);
+                        ctx.strokeStyle = `rgba(255, 204, 0, ${isMobile ? alpha * 0.4 : alpha})`;
                         ctx.lineWidth = 0.5;
                         ctx.beginPath();
                         ctx.moveTo(particle.x, particle.y);
