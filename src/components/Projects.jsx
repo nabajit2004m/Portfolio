@@ -9,7 +9,7 @@ const projects = [
         title: 'Task Management App',
         desc: 'Real-time collaboration tool for remote teams.',
         tags: ['React', 'Firebase', 'Redux'],
-        image: '/zenitsu-agatsuma-5120x2880-24472.png'
+        image: 'https://images.unsplash.com/photo-1605901309584-818e25960b8f?auto=format&fit=crop&q=80&w=1920' // Placeholder for: https://www.istockphoto.com/photo/man-playing-video-game-gm637925516-114061579
     },
     {
         id: 2,
