@@ -1,14 +1,14 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { ArrowRight, Zap } from 'lucide-react';
+
+const words = ["Creative Logic", "Interactive Experiences", "Scalable Solutions"];
 
 const Hero = () => {
     const [text, setText] = React.useState('');
     const [isDeleting, setIsDeleting] = React.useState(false);
     const [loopNum, setLoopNum] = React.useState(0);
     const [typingSpeed, setTypingSpeed] = React.useState(150);
-
-    const words = ["Creative Logic", "Interactive Experiences", "Scalable Solutions"];
 
     React.useEffect(() => {
         const handleTyping = () => {

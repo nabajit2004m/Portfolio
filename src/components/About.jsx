@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Code, Server, Database, Layout, Smartphone, Cloud } from 'lucide-react';
 
 const skills = [
