@@ -113,11 +113,25 @@ const ParticleBackground = () => {
         window.addEventListener('resize', resizeCanvas);
 
         // Create particles
-        const particleCount = 240;
-        particlesRef.current = [];
-        for (let i = 0; i < particleCount; i++) {
-            particlesRef.current.push(new Particle(canvas.width, canvas.height));
-        }
+        const createParticles = () => {
+            const isMobile = window.innerWidth <= 768;
+            const particleCount = isMobile ? 50 : 150; // Reduce count significantly for mobile
+
+            particlesRef.current = [];
+            for (let i = 0; i < particleCount; i++) {
+                particlesRef.current.push(new Particle(canvas.width, canvas.height));
+            }
+        };
+
+        createParticles();
+
+        // Update particles on resize
+        const handleResize = () => {
+            resizeCanvas();
+            createParticles();
+        };
+
+        window.addEventListener('resize', handleResize);
 
         // Animation loop
         const animate = () => {
@@ -170,7 +184,7 @@ const ParticleBackground = () => {
 
         // Cleanup
         return () => {
-            window.removeEventListener('resize', resizeCanvas);
+            window.removeEventListener('resize', handleResize);
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseleave', handleMouseLeave);
             cancelAnimationFrame(animationFrameId);
