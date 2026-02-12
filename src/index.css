@@ -254,6 +254,24 @@ ul {
   }
 }
 
+/* Strict Mobile/Touch Cursor Removal */
+@media (pointer: coarse) {
+
+  .cursor-dot,
+  .cursor-follower {
+    display: none !important;
+  }
+
+  body,
+  a,
+  button,
+  input,
+  textarea,
+  select {
+    cursor: auto !important;
+  }
+}
+
 @media (min-width: 769px) {
   .mobile-toggle {
     display: none;
