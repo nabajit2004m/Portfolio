@@ -185,8 +185,10 @@ ul {
   }
 
   .section-title {
-    font-size: 2.2rem;
+    font-size: 2rem;
     margin-bottom: 40px;
+    word-wrap: break-word;
+    /* Prevent text overflow */
   }
 
   /* Hide default cursor on mobile/touch devices but keep custom cursor visible */
@@ -225,6 +227,12 @@ ul {
   .about-grid {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+
+  .skills-grid {
+    grid-template-columns: 1fr;
+    /* Stack skills on mobile for better visibility */
+    gap: 1rem;
   }
 
   .projects-grid {
