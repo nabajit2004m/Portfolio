@@ -197,7 +197,7 @@ const ChatWidget = () => {
                             <img src="/chatbot-logo.jpg" alt="Logo" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                         </div>
                         <div className="chat-widget-header-info">
-                            <h4>Nabajit Mandal</h4>
+                            <h4>Nexa</h4>
                             <span>Online — ready to help</span>
                         </div>
                         <div style={{ display: 'flex', gap: '5px' }}>
@@ -236,10 +236,9 @@ const ChatWidget = () => {
                         ) : messages.length === 0 ? (
                             <div className="chat-widget-welcome">
                                 <div className="welcome-emoji">👋</div>
-                                <h3>Hey, Nabajit here! 👋</h3>
+                                <h3>Hey! I'm Nexa 👋</h3>
                                 <p>
-                                    What do you want to know about me? Ask me anything about my work,
-                                    skills, or just say hi!
+                                    I am Nabajit's AI assistant. I can not only help you with his portfolio but also with any knowledge across the universe... 😊
                                 </p>
                             </div>
                         ) : (
@@ -288,7 +287,7 @@ const ChatWidget = () => {
                     </div>
 
                     <div className="chat-widget-footer">
-                        Powered by AI • Representing Nabajit Mandal
+                        Powered by AI • Nexa Assistant
                     </div>
                 </div>
             )}

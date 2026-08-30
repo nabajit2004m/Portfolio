@@ -248,16 +248,16 @@
 }
 
 .chat-widget-welcome h3 {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #fff;
     margin-bottom: 6px;
 }
 
 .chat-widget-welcome p {
-    font-size: 0.82rem;
-    color: #888;
-    line-height: 1.5;
+    font-size: 0.95rem;
+    color: #ccc;
+    line-height: 1.6;
     margin-bottom: 16px;
 }
 
@@ -313,9 +313,9 @@
 }
 
 .widget-msg-bubble {
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-radius: 14px;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     line-height: 1.6;
 }
 
