@@ -3,19 +3,32 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { ExternalLink, Github } from 'lucide-react';
 
 const projects = [
-
     {
         id: 1,
-        title: 'Task Management App',
-        desc: 'Real-time collaboration tool for remote teams.',
-        tags: ['React', 'Firebase', 'Redux'],
-        image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' // Placeholder for: https://www.istockphoto.com/photo/man-playing-video-game-gm637925516-114061579
+        title: 'ML Student Performance Predictor',
+        desc: 'Machine learning model predicting academic outcomes based on study hours and attendance.',
+        tags: ['Python', 'Scikit-learn', 'Pandas', 'Linear Regression'],
+        image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800'
     },
     {
         id: 2,
-        title: 'Portfolio V1',
-        desc: 'Minimalist portfolio design for designers.',
-        tags: ['HTML/CSS', 'JavaScript'],
+        title: 'Intelligent Hostel Management System',
+        desc: 'Full-stack solution utilizing Python and machine learning for predictive resource allocation.',
+        tags: ['Python', 'Machine Learning', 'Prototyping'],
+        image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&q=80&w=800'
+    },
+    {
+        id: 3,
+        title: 'Event System & Hardware Override',
+        desc: 'Python script to automatically shuffle and distribute registered players into groups.',
+        tags: ['Python', 'Data Structures', 'Automation'],
+        image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800'
+    },
+    {
+        id: 4,
+        title: 'Personal Web Portfolio',
+        desc: 'Streamlined digital portfolio to showcase technical progress and creative design assets.',
+        tags: ['React', 'UX/UI', 'Generative AI'],
         image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=800'
     }
 ];

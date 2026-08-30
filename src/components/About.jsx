@@ -3,12 +3,12 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Code, Server, Database, Layout, Smartphone, Cloud } from 'lucide-react';
 
 const skills = [
-    { name: 'React', icon: <Code size={24} />, level: 'Advanced' },
-    { name: 'Node.js', icon: <Server size={24} />, level: 'Intermediate' },
-    { name: 'MongoDB', icon: <Database size={24} />, level: 'Intermediate' },
-    { name: 'UI/UX Design', icon: <Layout size={24} />, level: 'Advanced' },
-    { name: 'Mobile Dev', icon: <Smartphone size={24} />, level: 'Basic' },
-    { name: 'Cloud Services', icon: <Cloud size={24} />, level: 'Basic' },
+    { name: 'C & Python', icon: <Code size={24} />, level: 'Programming' },
+    { name: 'Generative AI', icon: <Server size={24} />, level: 'Prompt Eng' },
+    { name: 'Data Preprocessing', icon: <Database size={24} />, level: 'Pandas/NumPy' },
+    { name: 'UI & Video', icon: <Layout size={24} />, level: 'Creative' },
+    { name: 'Event Logistics', icon: <Cloud size={24} />, level: 'Operations' },
+    { name: 'Leadership', icon: <Smartphone size={24} />, level: 'Soft Skill' },
 ];
 
 const About = () => {
@@ -26,16 +26,13 @@ const About = () => {
                     <div className="about-grid">
                         <div className="bio">
                             <h3 style={{ fontSize: '2rem', marginBottom: '1rem' }}>
-                                Crafting Digital <span style={{ color: 'var(--primary-color)' }}>Experiences</span>
+                                Innovative <span style={{ color: 'var(--primary-color)' }}>Problem Solver</span>
                             </h3>
                             <p style={{ color: '#ccc', marginBottom: '1.5rem', lineHeight: '1.8' }}>
-                                I am a passionate developer with a knack for building high-performance applications.
-                                My focus is on creating web experiences that are not only functional but also visually stunning
-                                and intuitive to use. I treat every project like a flagship product, ensuring speed,
-                                responsiveness, and attention to detail.
+                                I am an engineering student at Impact College of Engineering (ICEAS) with foundational programming skills, creative design capacity, and a proven background in event operations. I'm experienced in coordinating high-value corporate event logistics for industry leaders including Google, WhatsApp, and LinkedIn.
                             </p>
                             <p style={{ color: '#ccc', lineHeight: '1.8' }}>
-                                Just like iQOO pushes the boundaries of performance, I push the boundaries of what's possible on the web.
+                                Skilled in prompt engineering to accelerate AI workflows, video editing, and leading cross-functional teams. Well-equipped for collaborative roles requiring clear communication, critical thinking, and operational efficiency.
                             </p>
                         </div>
 

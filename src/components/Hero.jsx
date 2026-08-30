@@ -109,7 +109,7 @@ const Hero = () => {
                         maxWidth: '600px',
                         margin: '0 auto 3rem'
                     }}>
-                        <span style={{ color: 'var(--primary-color)', fontWeight: 'bold', display: 'block', fontSize: '2rem', marginBottom: '0.5rem' }}>Game Developer</span>
+                        <span style={{ color: 'var(--primary-color)', fontWeight: 'bold', display: 'block', fontSize: '2rem', marginBottom: '0.5rem' }}>Engineering Student</span>
                         Learning, Building, and Improving Every Day
                     </p>
 

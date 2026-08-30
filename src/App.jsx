@@ -8,8 +8,7 @@ import About from './components/About';
 import Projects from './components/Projects';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-
-
+import ChatWidget from './components/Chatbot';
 
 function App() {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -28,6 +27,7 @@ function App() {
       <Projects />
       <Contact />
       <Footer />
+      <ChatWidget />
     </div>
   );
 }
