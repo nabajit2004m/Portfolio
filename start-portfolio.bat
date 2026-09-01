@@ -18,7 +18,7 @@ echo [2/2] Starting Frontend Vite App Server...
 start cmd /k "npm run dev"
 
 echo Waiting 5 seconds for systems to fully come online...
-timeout /t 5 /nobreak >nul
+ping 127.0.0.1 -n 6 > nul
 
 echo Opening your App in the Browser!
 start http://localhost:5173

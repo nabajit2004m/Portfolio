@@ -87,9 +87,19 @@ app.post('/api/chat', async (req, res) => {
                 success = true;
             } catch (err) {
                 console.error(`API Key attempt ${attempt + 1} failed: ${err.message}`);
+
+                // If the key is permanently dead, invalid, or unauthorized, purge it immediately so it doesn't slow down the Chatbot on every future request!
+                if (err.message.includes("403") || err.message.includes("404") || err.message.includes("API key not valid") || err.message.includes("400")) {
+                    const indexToRemove = GEMINI_KEYS.indexOf(rotatedKey);
+                    if (indexToRemove !== -1) GEMINI_KEYS.splice(indexToRemove, 1);
+                    console.log(`[Speed Optimization] Key permanently purged from rotation. ${GEMINI_KEYS.length} valid keys remaining.`);
+                }
+
                 attempt++;
-                if (attempt >= GEMINI_KEYS.length) {
-                    throw err; // Re-throw if all keys are exhausted
+                if (attempt >= GEMINI_KEYS.length && GEMINI_KEYS.length > 0) {
+                    throw err;
+                } else if (GEMINI_KEYS.length === 0) {
+                    throw new Error("All provided API keys are invalid or exhausted.");
                 }
             }
         }
