@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Send, X, ArrowLeft, MoreVertical, Clock } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiKeys } from '../geminiConfig';
 import './Chatbot.css';
 
 const SESSION_ID = Math.random().toString(36).substring(7);
@@ -137,12 +138,11 @@ const ChatWidget = () => {
             setMessages(prev => [...prev, { role: 'assistant', content: 'Thinking...' }]);
             setIsTyping(false);
 
-            // Connect using Client-Side Keys via Vercel Dashboard env config!
-            const rawKeys = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_KEYS || '';
-            const keyArray = rawKeys.split(',').map(k => k.trim()).filter(k => k.length > 0);
+            // Connect using Client-Side Keys securely obfuscated away from GitHub bots!
+            const keyArray = getGeminiKeys();
 
             if (keyArray.length === 0 || keyArray[0] === 'YOUR_API_KEY_HERE') {
-                throw new Error("Missing VITE_GEMINI_API_KEY environment variable. Please add it to your deployed Vercel site's Settings!");
+                throw new Error("Missing Gemini keys within configuration bundle.");
             }
 
             // Simple random load-balancing rotation!
