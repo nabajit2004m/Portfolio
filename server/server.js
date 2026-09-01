@@ -7,6 +7,19 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const ChatSession = require('./models/Chat');
 const SYSTEM_PROMPT = require('./config/prompt');
 
+const GEMINI_KEYS = process.env.GEMINI_API_KEYS
+    ? process.env.GEMINI_API_KEYS.split(',').map(k => k.trim())
+    : [];
+
+let currentKeyIndex = 0;
+
+function getRotatedKey() {
+    if (GEMINI_KEYS.length === 0) throw new Error("No Gemini API keys found in .env!");
+    const keyIndex = currentKeyIndex++ % GEMINI_KEYS.length;
+    console.log(`[API Rotation] Connecting to Google Gemini API utilizing Key #${keyIndex + 1} from your list of ${GEMINI_KEYS.length}...`);
+    return GEMINI_KEYS[keyIndex];
+}
+
 const app = express();
 
 // Middleware
@@ -37,16 +50,6 @@ app.post('/api/chat', async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
 
     try {
-        if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.includes('MISSING_API_KEY')) {
-            throw new Error("GEMINI_API_KEY is not configured on the server. Please update the .env file.");
-        }
-
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-3.6-flash',
-            systemInstruction: SYSTEM_PROMPT
-        });
-
         // Filter out assistant system startup messages to prevent Google SDK crashes
         const history = clientHistory
             .filter(m => !(m.role === 'model' && m.content && m.content.includes("API Key successfully configured")))
@@ -54,8 +57,6 @@ app.post('/api/chat', async (req, res) => {
                 role: m.role === 'user' ? 'user' : 'model',
                 parts: [{ text: m.content }]
             }));
-
-        const chat = model.startChat({ history });
 
         // Save User Message to DB safely
         let session = null;
@@ -67,9 +68,33 @@ app.post('/api/chat', async (req, res) => {
             await session.save().catch(e => console.error("Could not save to DB:", e));
         }
 
-        const result = await chat.sendMessageStream(message);
-        let fullText = '';
+        let attempt = 0;
+        let result = null;
+        let success = false;
+        let chat = null;
 
+        while (attempt < GEMINI_KEYS.length && !success) {
+            try {
+                const rotatedKey = getRotatedKey();
+                const genAI = new GoogleGenerativeAI(rotatedKey);
+                const model = genAI.getGenerativeModel({
+                    model: 'gemini-3.6-flash',
+                    systemInstruction: SYSTEM_PROMPT
+                });
+
+                chat = model.startChat({ history });
+                result = await chat.sendMessageStream(message);
+                success = true;
+            } catch (err) {
+                console.error(`API Key attempt ${attempt + 1} failed: ${err.message}`);
+                attempt++;
+                if (attempt >= GEMINI_KEYS.length) {
+                    throw err; // Re-throw if all keys are exhausted
+                }
+            }
+        }
+
+        let fullText = '';
         for await (const chunk of result.stream) {
             const chunkText = chunk.text();
             fullText += chunkText;
@@ -137,6 +162,6 @@ app.post('/api/key', (req, res) => {
 });
 
 const port = process.env.PORT || 5000;
-app.listen(port, () => {
+app.listen(port, '127.0.0.1', () => {
     console.log(`🚀 Server running on port ${port}`);
 });

@@ -32,7 +32,7 @@ const ChatWidget = () => {
     useEffect(() => {
         const savedKey = localStorage.getItem('naba-widget-key');
         if (savedKey && savedKey.startsWith('AIza')) {
-            fetch('http://localhost:5000/api/key', {
+            fetch('http://127.0.0.1:5000/api/key', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ key: savedKey })
@@ -56,7 +56,7 @@ const ChatWidget = () => {
     const fetchHistory = async () => {
         setIsTyping(true);
         try {
-            const res = await fetch('http://localhost:5000/api/history');
+            const res = await fetch('http://127.0.0.1:5000/api/history');
             if (res.ok) {
                 const data = await res.json();
                 setHistorySessions(data);
@@ -94,7 +94,7 @@ const ChatWidget = () => {
             setMessages(prev => [...prev, { role: 'assistant', content: 'Thinking...' }]);
             setIsTyping(false);
 
-            const response = await fetch('http://localhost:5000/api/chat', {
+            const response = await fetch('http://127.0.0.1:5000/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
