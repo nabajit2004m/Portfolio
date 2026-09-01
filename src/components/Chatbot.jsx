@@ -53,6 +53,9 @@ Here is everything about Nabajit Mandal:
 - Be highly conversational, engaging, and interactive — like ChatGPT or Gemini, but strictly representing Nabajit.
 - Keep the chat dynamic. Answer the question naturally, and then ask a follow-up question to keep the conversation flowing.`;
 
+// Global state to cache valid keys across chat sessions natively in the browser memory
+let cachedValidKeys = null;
+
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
@@ -139,20 +142,13 @@ const ChatWidget = () => {
             setIsTyping(false);
 
             // Connect using Client-Side Keys securely obfuscated away from GitHub bots!
-            const keyArray = getGeminiKeys();
-
-            if (keyArray.length === 0 || keyArray[0] === 'YOUR_API_KEY_HERE') {
-                throw new Error("Missing Gemini keys within configuration bundle.");
+            if (!cachedValidKeys) {
+                cachedValidKeys = getGeminiKeys();
             }
 
-            // Simple random load-balancing rotation!
-            const activeKey = keyArray[Math.floor(Math.random() * keyArray.length)];
-
-            const genAI = new GoogleGenerativeAI(activeKey);
-            const model = genAI.getGenerativeModel({
-                model: 'gemini-1.5-flash',
-                systemInstruction: SYSTEM_PROMPT
-            });
+            if (cachedValidKeys.length === 0) {
+                throw new Error("Missing Gemini keys within configuration bundle.");
+            }
 
             // Strip local-only placeholders
             const geminiHistory = messages
@@ -162,18 +158,48 @@ const ChatWidget = () => {
                     parts: [{ text: m.content }]
                 }));
 
-            const chat = model.startChat({ history: geminiHistory });
-            const result = await chat.sendMessageStream(messageText);
-
+            let attempt = 0;
+            let success = false;
             let fullText = '';
-            for await (const chunk of result.stream) {
-                const chunkText = chunk.text();
-                fullText += chunkText;
-                setMessages(prev => {
-                    const newMsgs = [...prev];
-                    newMsgs[newMsgs.length - 1].content = fullText;
-                    return newMsgs;
-                });
+
+            while (attempt < cachedValidKeys.length && !success) {
+                const activeKey = cachedValidKeys[Math.floor(Math.random() * cachedValidKeys.length)];
+
+                try {
+                    const genAI = new GoogleGenerativeAI(activeKey);
+                    const model = genAI.getGenerativeModel({
+                        model: 'gemini-1.5-flash',
+                        systemInstruction: SYSTEM_PROMPT
+                    });
+
+                    const chat = model.startChat({ history: geminiHistory });
+                    const result = await chat.sendMessageStream(messageText);
+
+                    for await (const chunk of result.stream) {
+                        const chunkText = chunk.text();
+                        fullText += chunkText;
+                        setMessages(prev => {
+                            const newMsgs = [...prev];
+                            newMsgs[newMsgs.length - 1].content = fullText;
+                            return newMsgs;
+                        });
+                    }
+                    success = true;
+                } catch (e) {
+                    console.warn("Client key rejection caught:", e.message);
+
+                    // Auto-prune permanently dead keys to keep it lightning fast
+                    if (e.message.includes("403") || e.message.includes("404") || e.message.includes("not valid") || e.message.includes("400")) {
+                        cachedValidKeys = cachedValidKeys.filter(k => k !== activeKey);
+                    }
+
+                    attempt++;
+                    if (attempt >= cachedValidKeys.length && cachedValidKeys.length > 0) {
+                        throw e;
+                    } else if (cachedValidKeys.length === 0) {
+                        throw new Error("All provided API keys are invalid or exhausted.");
+                    }
+                }
             }
 
             // Backup seamlessly
