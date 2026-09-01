@@ -2,9 +2,55 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Send, X, ArrowLeft, MoreVertical, Clock } from 'lucide-react';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import './Chatbot.css';
 
 const SESSION_ID = Math.random().toString(36).substring(7);
+
+const SYSTEM_PROMPT = `You are Nexa, a highly intelligent and helpful AI assistant representing Nabajit Mandal on his portfolio website. 
+
+Your personality:
+- Warm, professional yet friendly.
+- You speak in the first person ("I", "my") as Nexa, but ALWAYS refer to Nabajit in the third person ("he", "his", "Nabajit").
+- You are enthusiastic about Nabajit's work and encourage people to connect with him.
+- Keep responses concise and relevant — this is a chat widget.
+
+Here is everything about Nabajit Mandal:
+
+**Who he is:**
+- Name: Nabajit Mandal
+- Role: Engineering Student at ICEAS, VTU
+- Summary: Engineering student with skills in ML, Python, and coordinating major event operations (Google, WhatsApp, LinkedIn).
+
+**Skills:**
+- Programming & Core Tech: C, Python, Machine Learning, Data Preprocessing (Pandas, NumPy)
+- AI & Digital Media: Prompt Engineering (Generative AI), Graphic Designing, Video Editing
+- Management & Operations: Leadership, Event Logistics, Team Coordination
+- UI & Web: React, HTML/CSS, UI/UX Design
+
+**Experience / Leadership:**
+- Independent Event Operations: Supervised on-ground logistics for Google, WhatsApp, LinkedIn.
+- ICEAS LAN Championship: Operations Manager.
+- Tech Fest 2023 & TEJAS 2024: Event Organizer & Volunteer.
+
+**Projects:**
+1. ML Student Performance Predictor — Machine learning model predicting academic outcomes based on study hours and attendance. (Python, Scikit-learn, Linear Regression)
+2. Intelligent Hostel Management System — Prototyping a full-stack solution utilizing Python and ML for predictive resource allocation.
+3. Event System & Hardware Override — Python script to automatically shuffle and distribute registered players into groups.
+4. Personal Web Portfolio — Streamlined digital portfolio to showcase technical progress and creative design assets (Built with React).
+
+**Contact Info for Nabajit:**
+- Email: nabajit2004m@gmail.com
+- GitHub: https://github.com/nabajit2004
+- LinkedIn: https://www.linkedin.com/in/nabajit2004m
+
+**How to respond:**
+- You can answer questions about Nabajit's portfolio AND you have the capability to answer general world knowledge questions across the universe.
+- Keep messages SHORT — this is a widget chat, not an essay. Your responses should be 1-3 sentences max unless listing items!
+- If the user asks who you are, say exactly: "I am Nexa, an AI assistant representing Nabajit. I can not only help you with his portfolio but also with any knowledge across the universe... 😊"
+- If the user says "Hi", "Hello", or similar greetings, ALWAYS reply exactly with: "Hi! I'm Nexa. How may I help you?"
+- Be highly conversational, engaging, and interactive — like ChatGPT or Gemini, but strictly representing Nabajit.
+- Keep the chat dynamic. Answer the question naturally, and then ask a follow-up question to keep the conversation flowing.`;
 
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -28,20 +74,21 @@ const ChatWidget = () => {
         }
     }, [inputText]);
 
-    // Auto-recovery script to send the key to the backend if they stored it previously
-    useEffect(() => {
-        const savedKey = localStorage.getItem('naba-widget-key');
-        if (savedKey && savedKey.startsWith('AIza')) {
-            fetch('http://127.0.0.1:5000/api/key', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key: savedKey })
-            }).then(() => {
-                localStorage.removeItem('naba-widget-key');
-                console.log("Sent recovered key to server.");
-            }).catch(e => console.error("Could not auto-recover key", e));
+    // Local Storage save helper
+    const saveSessionToLocal = (newHistory) => {
+        try {
+            const stored = JSON.parse(localStorage.getItem('naba-history') || '[]');
+            const existingSessionIndex = stored.findIndex(s => s.sessionId === SESSION_ID);
+            if (existingSessionIndex >= 0) {
+                stored[existingSessionIndex].messages = newHistory;
+            } else {
+                stored.push({ sessionId: SESSION_ID, createdAt: Date.now(), messages: newHistory });
+            }
+            localStorage.setItem('naba-history', JSON.stringify(stored));
+        } catch (e) {
+            console.error("Could not save to local storage", e);
         }
-    }, []);
+    };
 
     const handleOpen = () => {
         setIsOpen(true);
@@ -53,25 +100,21 @@ const ChatWidget = () => {
         setShowHistory(false);
     };
 
-    const fetchHistory = async () => {
+    // Pull from Local Storage (Serverless alternative!)
+    const fetchHistory = () => {
         setIsTyping(true);
-        try {
-            const res = await fetch('http://127.0.0.1:5000/api/history');
-            if (res.ok) {
-                const data = await res.json();
-                setHistorySessions(data);
+        setTimeout(() => {
+            try {
+                const stored = JSON.parse(localStorage.getItem('naba-history') || '[]');
+                stored.sort((a, b) => b.createdAt - a.createdAt);
+                setHistorySessions(stored);
                 setShowHistory(true);
-            } else if (res.status === 503) {
-                alert("The chat history database is currently disconnected on your machine. Please ensure MongoDB is running.");
-            } else {
-                alert("Warning: Could not pull chat history right now.");
+            } catch (e) {
+                alert("Could not load local history.");
+            } finally {
+                setIsTyping(false);
             }
-        } catch (e) {
-            console.error("Could not fetch history");
-            alert("Warning: Could not connect to the backend server to load history.");
-        } finally {
-            setIsTyping(false);
-        }
+        }, 300);
     };
 
     const loadSession = (session) => {
@@ -94,74 +137,52 @@ const ChatWidget = () => {
             setMessages(prev => [...prev, { role: 'assistant', content: 'Thinking...' }]);
             setIsTyping(false);
 
-            const response = await fetch('http://127.0.0.1:5000/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId: SESSION_ID,
-                    message: messageText,
-                    history: messages
-                })
+            // Connect using Client-Side Keys via Vercel Dashboard env config!
+            const rawKeys = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_KEYS || '';
+            const keyArray = rawKeys.split(',').map(k => k.trim()).filter(k => k.length > 0);
+
+            if (keyArray.length === 0 || keyArray[0] === 'YOUR_API_KEY_HERE') {
+                throw new Error("Missing VITE_GEMINI_API_KEY environment variable. Please add it to your deployed Vercel site's Settings!");
+            }
+
+            // Simple random load-balancing rotation!
+            const activeKey = keyArray[Math.floor(Math.random() * keyArray.length)];
+
+            const genAI = new GoogleGenerativeAI(activeKey);
+            const model = genAI.getGenerativeModel({
+                model: 'gemini-1.5-flash',
+                systemInstruction: SYSTEM_PROMPT
             });
 
-            if (!response.ok) {
-                throw new Error("Could not connect to the backend server.");
-            }
+            // Strip local-only placeholders
+            const geminiHistory = messages
+                .filter(m => !(m.role === 'assistant' && m.content === 'Thinking...'))
+                .map(m => ({
+                    role: m.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: m.content }]
+                }));
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder('utf-8');
+            const chat = model.startChat({ history: geminiHistory });
+            const result = await chat.sendMessageStream(messageText);
+
             let fullText = '';
-            let done = false;
-
-            while (!done) {
-                const { value, done: readerDone } = await reader.read();
-                done = readerDone;
-                if (value) {
-                    const chunk = decoder.decode(value, { stream: true });
-                    const lines = chunk.split('\n\n');
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const dataStr = line.substring(6);
-                            if (dataStr === '[DONE]') continue;
-                            try {
-                                const data = JSON.parse(dataStr);
-                                if (data.error) throw new Error(data.error);
-                                if (data.text) {
-                                    if (fullText === '') {
-                                        setMessages(prev => {
-                                            const newMsgs = [...prev];
-                                            newMsgs[newMsgs.length - 1].content = '';
-                                            return newMsgs;
-                                        });
-                                    }
-                                    fullText += data.text;
-                                    setMessages(prev => {
-                                        const newMsgs = [...prev];
-                                        newMsgs[newMsgs.length - 1].content = fullText;
-                                        return newMsgs;
-                                    });
-                                }
-                            } catch (e) {
-                                if (e.message !== "Unexpected end of JSON input") {
-                                    throw e;
-                                }
-                            }
-                        }
-                    }
-                }
+            for await (const chunk of result.stream) {
+                const chunkText = chunk.text();
+                fullText += chunkText;
+                setMessages(prev => {
+                    const newMsgs = [...prev];
+                    newMsgs[newMsgs.length - 1].content = fullText;
+                    return newMsgs;
+                });
             }
+
+            // Backup seamlessly
+            saveSessionToLocal([...newMessages, { role: 'assistant', content: fullText }]);
+
         } catch (error) {
-            let errMsg = "Sorry, I couldn't respond right now. ";
-            if (error.message?.includes('fetch') || error.message?.includes('connect')) {
-                errMsg += "The backend API server may be offline.";
-            } else {
-                errMsg += "Error: " + error.message;
-            }
-
-            // Replace the 'Thinking...' placeholder with the error message
             setMessages(prev => {
                 const newMsgs = [...prev];
-                newMsgs[newMsgs.length - 1].content = errMsg;
+                newMsgs[newMsgs.length - 1].content = "Sorry, I couldn't respond right now. Error: " + error.message;
                 return newMsgs;
             });
         } finally {
